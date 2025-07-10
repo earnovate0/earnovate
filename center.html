@@ -559,7 +559,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Upload Screenshot</label>
+          <label>Upload Screenshot (Optional)</label>
           <div class="upload-area" id="ss-upload-area">
             <i class="fas fa-cloud-upload-alt"></i>
             <p>Tap to select from gallery (PNG/JPG, max 5MB)</p>
@@ -883,7 +883,7 @@
         toggleDisplay(DOMElements[type].previewContainer, false);
         toggleDisplay(DOMElements[type].uploadError, true);
         DOMElements[type].uploadArea.classList.add('error-border');
-        toggleDisabled(DOMElements[type].submitBtn, true);
+        toggleDisabled(DOMElements[type].submitBtn, true); // Keep this disabled if the uploaded file is invalid
         return;
       }
       selectedFile[type] = file;
@@ -901,9 +901,9 @@
       let canSubmit = false;
 
       if (type === 'ss') {
-          let hasFile = selectedFile.ss !== null;
+          // Changed: Screenshot can be submitted without a file, but needs a wallet
           let hasWallet = selectedWalletSsId !== null;
-          canSubmit = hasFile && hasWallet;
+          canSubmit = hasWallet; // Only depends on wallet selection
       } else if (type === 'file') {
           let hasType = fileSelectedType !== null;
           let hasWallet = selectedWalletFileId !== null;
@@ -1026,15 +1026,17 @@ ${formattedPasswords}
 
         toggleDisplay(DOMElements.ss.uploadError, false);
         toggleDisplay(DOMElements.ss.walletError, false);
-        DOMElements.ss.uploadArea.classList.remove('error-border');
+        // DOMElements.ss.uploadArea.classList.remove('error-border'); // Removed as upload is optional
         DOMElements.ss.walletSelect.classList.remove('error-border');
 
-        if (!selectedFile.ss || !validateFile(selectedFile.ss, 'ss')) {
-            DOMElements.ss.uploadError.textContent = 'Please upload a screenshot.';
-            toggleDisplay(DOMElements.ss.uploadError, true);
-            DOMElements.ss.uploadArea.classList.add('error-border');
-            isValid = false;
-        }
+        // Removed the file validation as it is now optional
+        // if (!selectedFile.ss || !validateFile(selectedFile.ss, 'ss')) {
+        //     DOMElements.ss.uploadError.textContent = 'Please upload a screenshot.';
+        //     toggleDisplay(DOMElements.ss.uploadError, true);
+        //     DOMElements.ss.uploadArea.classList.add('error-border');
+        //     isValid = false;
+        // }
+
         if (!selectedWalletSsId) {
             DOMElements.ss.walletError.textContent = 'Please select a wallet.';
             toggleDisplay(DOMElements.ss.walletError, true);
@@ -1054,26 +1056,31 @@ ${formattedPasswords}
             const currentSelectedWallet = savedWallets.find(w => w.id === selectedWalletSsId);
             const walletInfo = currentSelectedWallet ? { type: currentSelectedWallet.type, number: currentSelectedWallet.number } : { type: 'N/A', number: 'N/A' };
             const submissionType = DOMElements.ss.categorySelect.value;
-            const fileNameForStorage = `screenshots/${Date.now()}_${selectedFile.ss?.name || 'unknown.png'}`;
+            // The file name and size will only be relevant if a file was actually provided.
+            // For WhatsApp message, we are changing it to include payment time.
+            const fileDetails = selectedFile.ss ?
+                `\n*File Name:* ${selectedFile.ss.name}\n*File Size:* ${formatFileSize(selectedFile.ss.size)}` :
+                '\n(No screenshot attached)';
 
-            const fileLink = await uploadFileToPlaceholder(selectedFile.ss, fileNameForStorage);
+            // Changed WhatsApp message generation to include payment time
+            const message = `
+*New Submission Request*
+-----------------------------
+*Date:* ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+*Category:* ${submissionType}
+*Wallet Type:* ${walletInfo.type}
+*Wallet Number:* ${walletInfo.number}
 
-            const submissionDetails = {
-                date: new Date().toLocaleDateString('en-GB'),
-                walletType: walletInfo.type,
-                walletNumber: walletInfo.number,
-                submissionType: submissionType,
-                fileName: selectedFile.ss.name,
-                fileSize: formatFileSize(selectedFile.ss.size),
-                fileUrl: fileLink
-            };
+*Payment Time: Under 40 minutes*
 
-            const message = generateWhatsAppMessage(submissionDetails);
+_Please review the submission._
+            `.trim();
+
 
             sessionStorage.setItem('submissionSuccess', 'true');
             sessionStorage.setItem('submissionType', 'ss');
 
-            window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+            window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
         } catch (error) {
             console.error("Screenshot submission failed: ", error);
@@ -1250,14 +1257,19 @@ ${formattedPasswords}
     });
 
     const generateWhatsAppMessage = (details) => {
+        // This function is now specifically for screenshot submission and will include payment time.
+        // The email submission uses generateEmailSubjectAndBody.
         const message = `
-Date: ${details.date}
-Wallet: ${details.walletType}
-Number: ${details.walletNumber}
+*New Submission Request*
+-----------------------------
+*Date:* ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+*Category:* ${details.submissionType}
+*Wallet Type:* ${details.walletType}
+*Wallet Number:* ${details.walletNumber}
 
-*Submission Details:*
-Type: ${details.submissionType}
-File Link: ${details.fileUrl}
+*Payment Time: Under 40 minutes*
+
+_Please review the submission._
         `.trim();
         return encodeURIComponent(message);
     };

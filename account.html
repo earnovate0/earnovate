@@ -88,11 +88,11 @@
             display:flex;
             flex-direction:column;
             z-index:100;
-            padding-bottom: 90px; /* Increased padding to accommodate the new nav bar */
         }
         .page.active{
             transform:translateX(0);
             overflow-y:auto; /* Allow active pages to scroll */
+            padding-bottom: 90px; /* Increased padding to accommodate the new nav bar for pages */
         }
         .page-header{
             background:linear-gradient(135deg,var(--primary-blue) 0%,var(--secondary-blue) 100%);
@@ -109,6 +109,7 @@
             clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 100% 100%, 0% 100%); /* Base for flat bottom */
             border-bottom-left-radius: 20px; /* Apply rounding to corners */
             border-bottom-right-radius: 20px; /* Apply rounding to corners */
+            flex-shrink: 0; /* Prevent header from shrinking on scroll */
         }
         .page-header .back-btn{
             font-size:18px;
@@ -394,6 +395,7 @@
         .list-item-card.notification .icon-box{background-color:var(--purple)}
         .list-item-card.help-desk .icon-box{background-color:var(--success-green);} /* Corrected: Changed from .customer-service to .help-desk */
         .list-item-card.privacy .icon-box{background-color:var(--dark-purple)}
+        .list-item-card.reviews .icon-box{background-color:var(--warning-orange);} /* New: Reviews icon color */
         .privacy-page-content h3{
             color:var(--text-dark);
             font-size:18px;
@@ -417,7 +419,7 @@
         }
         .privacy-page-content ul li{margin-bottom:8px}
         .bottom-spacer{
-            height:15px;
+            height: 10px; /* Reduced spacer height */
             flex-shrink:0
         }
         @media (max-width:420px){
@@ -438,15 +440,36 @@
             .grid-cards.two-columns{grid-template-columns:1fr}
         }
         /* Specific styles moved from inline for consistency */
-        #redeemCodeInput{
+        #redeemCodeInput,
+        .review-form input[type="text"],
+        .review-form textarea {
             width:calc(100% - 20px);
             padding:12px 10px;
             border:1px solid #ddd;
             border-radius:8px;
             font-size:15px;
             outline:none;
-            margin-bottom:15px
+            margin-bottom:15px;
+            box-sizing: border-box; /* Ensure padding doesn't increase total width */
         }
+        /* Fix for iOS input focus pushing fixed elements */
+        @supports (-webkit-overflow-scrolling: touch) {
+            #redeemCodeInput,
+            .review-form input[type="text"],
+            .review-form textarea {
+                /* Add a bit of bottom margin to prevent virtual keyboard overlap */
+                margin-bottom: 20px; 
+            }
+            /* Adjust the content area of pages to ensure it scrolls over the keyboard */
+            .page-content {
+                padding-bottom: 110px; /* More padding to account for keyboard and nav bar */
+            }
+            /* Main view also needs adjustment if it contains inputs */
+            #scrollable-main-view {
+                padding-bottom: 110px; /* Ensure main scrollable view clears nav bar and potentially keyboard */
+            }
+        }
+
         #redeemCodeBtn{
             width:100%;
             padding:12px 15px;
@@ -495,7 +518,7 @@
             color: var(--text-light);
             margin-left: 10px;
         }
-        #noRedemptionHistory,#noNotifications{
+        #noRedemptionHistory,#noNotifications,#noReviews{
             text-align:center;
             color:#999;
             margin-top:20px
@@ -506,13 +529,33 @@
         .help-desk button {
             padding: 10px 15px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px; /* Slightly larger radius for buttons */
             cursor: pointer;
             margin-bottom: 15px;
             color: #fff;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex; /* Allow icon and text to be side-by-side */
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Space between icon and text */
+            transition: background-color 0.2s ease;
         }
-        .help-desk button:first-of-type {background-color: var(--success-green);}
-        .help-desk button:last-of-type {background-color: var(--primary-blue);}
+        .help-desk button i {
+            font-size: 18px;
+        }
+        .help-desk button.whatsapp-btn {
+            background-color: #25D366; /* WhatsApp Green */
+        }
+        .help-desk button.whatsapp-btn:hover {
+            background-color: #1DA851;
+        }
+        .help-desk button.faq-btn {
+            background-color: var(--primary-blue); /* Original secondary button color */
+        }
+        .help-desk button.faq-btn:hover {
+            background-color: var(--secondary-blue);
+        }
         /* Notification item styling */
         .notification-item {
             background-color: #f8f8f8;
@@ -645,6 +688,115 @@
             outline: none;
         }
 
+        /* Review Page Styles */
+        .review-form {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.05);
+            margin-bottom: 20px;
+        }
+        .review-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        .review-form input[type="text"],
+        .review-form textarea {
+            width: calc(100% - 20px);
+            padding: 12px 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            margin-bottom: 15px;
+            box-sizing: border-box; /* Ensures padding doesn't increase total width */
+            resize: vertical; /* Allow vertical resizing for textarea */
+            min-height: 80px; /* Minimum height for textarea */
+        }
+        .review-form button {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: var(--primary-blue); /* Consistent with other action buttons */
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color .2s ease-out;
+        }
+        .review-form button:hover {
+            background-color: var(--secondary-blue);
+        }
+        .review-message {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 500;
+            color: #555;
+            min-height: 20px;
+        }
+
+        .review-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .review-item {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border: 1px solid #eee;
+        }
+        .review-item .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .review-item .reviewer-name {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 15px;
+        }
+        .review-item .review-date {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+        .review-item .review-text {
+            font-size: 14px;
+            color: var(--text-medium);
+            line-height: 1.5;
+            margin-top: 5px;
+        }
+        /* New: Review Like System */
+        .review-item .review-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+        .review-item .like-button {
+            cursor: pointer;
+            color: var(--text-light);
+            transition: color 0.2s ease-in-out;
+        }
+        .review-item .like-button.liked i {
+            color: var(--danger-red);
+        }
+        .review-item .like-button i {
+            font-size: 16px;
+        }
+        .review-item .like-count {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
         /* Responsive Design */
         @media (max-width: 480px) {
           .nav-bar { padding: 8px 10px; } .nav-btn { font-size: 11px; padding: 8px; width: 55px; height: 55px; }
@@ -656,6 +808,25 @@
           .modal-content h3 { font-size: 18px; margin-bottom: 12px; }
           .modal-content p { font-size: 13px; margin-bottom: 20px; }
           .modal-content .modal-close-btn { padding: 10px 20px; font-size: 13px; }
+
+          /* Review Page Specifics for Mobile */
+          .review-form input[type="text"], .review-form textarea {
+            font-size: 14px;
+            padding: 10px;
+          }
+          .review-form button {
+            font-size: 15px;
+            padding: 10px;
+          }
+          .review-item {
+            padding: 12px;
+          }
+          .review-item .reviewer-name {
+            font-size: 14px;
+          }
+          .review-item .review-text {
+            font-size: 13px;
+          }
         }
         @media (max-width: 375px) {
             .nav-btn { width: 50px; height: 50px; font-size: 10px; } .nav-btn i { font-size: 16px; }
@@ -717,6 +888,12 @@
                 <div class="card list-item-card privacy" data-page="privacy-page">
                     <div class="icon-box"><i class="fas fa-user-shield"></i></div>
                     <div class="label">Privacy Policy</div>
+                    <i class="fas fa-chevron-right arrow"></i>
+                </div>
+
+                <div class="card list-item-card reviews" data-page="reviews-page">
+                    <div class="icon-box"><i class="fas fa-star"></i></div>
+                    <div class="label">User Reviews</div>
                     <i class="fas fa-chevron-right arrow"></i>
                 </div>
 
@@ -792,8 +969,6 @@
                 <h3>8. Contact Us</h3>
                 <p>If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please do not hesitate to contact us:</p>
                 <p>Email: <a href="mailto:onlineearneleven@gmail.com">onlineearneleven@gmail.com</a></p>
-                <p>Phone: <a href="tel:+8801886313023">+880 1886-313023</a></p>
-                <br><br><br>
                 <p style="text-align:center;font-size:11px;color:#aaa">*This Privacy Policy is a general template and should be adapted for legal compliance.*</p>
                 <p style="text-align:center;font-size:11px;color:#777">&copy; 2025 Earnovate. All rights reserved.</p> </div>
         </div>
@@ -809,16 +984,15 @@
                 <h4>Whatsapp Chat</h4>
                 <p>Connect with a support agent instantly for real-time assistance.</p>
                 <a href="https://wa.me/+8801886313023" target="_blank">
-                    <button>Start Whatsapp Chat</button>
+                    <button class="whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i> Start Whatsapp Chat
+                    </button>
                 </a>
                 <h4>FAQ (Frequently Asked Questions)</h4>
-                <button data-coming-soon="FAQs">Browse FAQs</button>
+                <button class="faq-btn" data-coming-soon="FAQs">Browse FAQs</button>
                 <h4>Email Support</h4>
                 <p>For detailed inquiries, you can send us an email. We aim to respond within 24 hours.</p>
                 <p>Email: <a href="mailto:onlineearneleven@gmail.com">onlineearneleven@gmail.com</a></p>
-                <h4>Phone Support</h4>
-                <p>Call us directly for immediate assistance.</p>
-                <p>Phone: <a href="tel:+8801886313023">+880 1886-313023</a></p>
             </div>
         </div>
 
@@ -856,6 +1030,32 @@
                 </div>
             </div>
         </div>
+
+        <div id="reviews-page" class="page">
+            <div class="page-header">
+                <i class="fas fa-arrow-left back-btn"></i>
+                <span class="page-title">User Reviews</span>
+            </div>
+            <div class="page-content">
+                <h3>Share Your Experience!</h3>
+                <p>We value your feedback. Let us know how Earnovate has helped you!</p>
+                <div class="review-form">
+                    <label for="reviewTextInput">Your Review:</label>
+                    <textarea id="reviewTextInput" placeholder="Write your honest review here..."></textarea>
+                    
+                    <button id="submitReviewBtn">Submit Review</button>
+                    <div class="review-message" id="reviewSubmissionMessage"></div>
+                </div>
+
+                <h3 style="margin-top:30px;">What Our Users Say</h3>
+                <p style="font-size:12px;color:#888;">Hear from our successful users.</p>
+                <ul id="reviewList" class="review-list">
+                    </ul>
+                <p id="noReviews">No reviews yet. Be the first to share your experience!</p>
+            </div>
+        </div>
+
+
     </div>
     
     <div class="nav-bar">
@@ -895,7 +1095,7 @@
                 editNameBtn: document.getElementById('editNameBtn'),
                 userUidEl: document.getElementById('userUid'),
                 copyUidBtn: document.getElementById('copyUidBtn'),
-                uidCopyFeedback: document.getElementById('uidCopyFeedback'), // New element for feedback
+                uidCopyFeedback: document.getElementById('uidCopyFeedback'),
                 redeemCodeInput: document.getElementById('redeemCodeInput'),
                 redeemCodeBtn: document.getElementById('redeemCodeBtn'),
                 redeemMsg: document.getElementById('redeemMessage'),
@@ -905,11 +1105,16 @@
                 notificationList: document.getElementById('notificationList'),
                 noNotificationsMsg: document.getElementById('noNotifications'),
                 pages: document.querySelectorAll('.page'),
-                navTriggers: document.querySelectorAll('[data-page]'), // Selects both list-item-card and grid-card
+                navTriggers: document.querySelectorAll('[data-page]'),
                 backBtns: document.querySelectorAll('.back-btn'),
                 navBtns: document.querySelectorAll('.nav-btn'),
                 comingSoonModal: document.getElementById('coming-soon-modal'),
-                closeComingSoonModalBtn: document.getElementById('close-coming-soon-modal')
+                closeComingSoonModalBtn: document.getElementById('close-coming-soon-modal'),
+                reviewTextInput: document.getElementById('reviewTextInput'),
+                submitReviewBtn: document.getElementById('submitReviewBtn'),
+                reviewSubmissionMessage: document.getElementById('reviewSubmissionMessage'),
+                reviewList: document.getElementById('reviewList'),
+                noReviewsMsg: document.getElementById('noReviews')
             };
 
             // Key for localStorage
@@ -940,7 +1145,22 @@
                 redeemedCodes: {}, // Stores { 'CODE': true } to track used codes
                 profilePicUrl: null,
                 userNameVal: "MEMBERNNG5UXP7",
-                userUid: ''
+                userUid: '',
+                reviews: [
+                    { id: 1, name: 'Rahim Khan', date: '2025-07-01', text: 'আলহামদুলিল্লাহ, এই প্রথম অ্যাড ফি ছাড়া একটি ইনকাম সাইট খুজে পেয়েছি 😊', likes: 120, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 2, name: 'Sumi Akter', date: '2025-06-28', text: 'তারা ভালো ইনকামের সাপোর্ট দিচ্ছে এবং রেফারের সুবিধা অনেক 💞', likes: 80, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 3, name: 'Arif Islam', date: '2025-06-25', text: 'আপনাদেরকে ধন্যবাদ এই প্রথম ফ্রী রেফার টিম বানিয়ে মাসে ৪০০০+ ইনকাম হয়েছে।', likes: 110, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 4, name: 'Fahmida Yesmin', date: '2025-06-20', text: 'কখনো ভাবতেও পারিনি আমার দ্বারা অনলাইন থেকে ইনকাম হবে, আলহামদুলিল্লাহ এখন নিজের ছোটখাটো শখ পূরণ করতে পারছি 🫶', likes: 60, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 5, name: 'Javed Hossain', date: '2025-06-18', text: 'শুরুতে ভেবেছিলাম আমার দাঁড়া রেফার করা সম্ভব নয়। এরপর ভাইয়াদের সাপোর্টে ও আমার চেষ্টায় মোটামুটি এখন আমার টিমে 70+ মেম্বার রয়েছে।', likes: 95, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 6, name: 'Nusrat Jahan', date: '2025-06-15', text: 'এখানের বাকি কাজগুলো থেকেও নিজের রেফার টিম বানিয়ে অনেক ইনকাম করা যায় 🙃', likes: 55, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 7, name: 'Kamal Ahmed', date: '2025-06-12', text: 'এখানে সবচাইতে ভালো লেগেছে যে তারা কোন ধরনের অ্যাড ফি না নিয়ে এত সাপোর্ট দিচ্ছে ☺️🫶', likes: 105, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 8, name: 'Taslima Begum', date: '2025-06-10', text: 'Really nice site', likes: 45, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 9, name: 'Shourav Khan', date: '2025-06-08', text: 'sob chaite beshi income hocche tiktop thake', likes: 85, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 10, name: 'Mariam Islam', date: '2025-06-05', text: 'amar team members ekhon 40+, refar bonus e 6000+ payeci 🥲💓', likes: 35, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 11, name: 'Sajid Mahmud', date: '2025-06-02', text: 'এখানের গেট লাইট, টিকটপ বেস্ট সাইট', likes: 75, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 },
+                    { id: 12, name: 'Rina Begum', date: '2025-05-30', text: 'Over all good 👍', likes: 25, liked: false, autoLikeScheduled: false, autoLikeCount: 0, maxAutoLikes: 0 }
+                ],
+                lastReviewId: 12 // To ensure unique IDs for new reviews
             };
 
             // Save app data to localStorage
@@ -966,14 +1186,29 @@
                     if (typeof appData.redeemedCodes !== 'object' || appData.redeemedCodes === null) {
                         appData.redeemedCodes = {};
                     }
+                    if (!Array.isArray(appData.reviews)) {
+                        appData.reviews = []; 
+                    } else {
+                        // Ensure autoLike properties are initialized for existing reviews loaded from storage
+                        appData.reviews.forEach(review => {
+                            if (typeof review.autoLikeScheduled === 'undefined') review.autoLikeScheduled = false;
+                            if (typeof review.autoLikeCount === 'undefined') review.autoLikeCount = 0;
+                            if (typeof review.maxAutoLikes === 'undefined') review.maxAutoLikes = 0;
+                        });
+                    }
+                    
+                    // Update lastReviewId based on existing reviews, or set to initial if empty
+                    appData.lastReviewId = appData.reviews.reduce((maxId, review) => Math.max(maxId, review.id), 0);
+
                     // If UID was not stored, generate it now and save
                     if (!appData.userUid) {
                         appData.userUid = generateUid();
                         saveAppData();
                     }
                 } else {
-                    // First time load, no data in localStorage, generate initial UID
+                    // First time load, no data in localStorage, generate initial UID and set default reviews
                     appData.userUid = generateUid();
+                    // Default reviews already set above
                     saveAppData();
                 }
             };
@@ -1049,7 +1284,6 @@
 
                     setProfilePic(); // Update profile pic initial letter if no image
                     saveAppData(); // Save after name update
-                    // Removed alert for name update, assuming visual change is enough
                 };
 
                 let isSaving = false;
@@ -1099,7 +1333,6 @@
                         }, 2000);
                     } catch (err2) {
                         console.error('Failed to copy UID using fallback:', err2);
-                        // If all else fails, a simple alert can be used as a last resort
                         alert('Failed to copy UID. Please try again or manually copy: ' + appData.userUid);
                     } finally {
                         document.body.removeChild(textarea);
@@ -1215,12 +1448,166 @@
                 }
             };
 
+            // New: Review System Functions
+            const displayReviews = () => {
+                els.reviewList.innerHTML = '';
+                if (appData.reviews.length === 0) {
+                    els.noReviewsMsg.style.display = 'block';
+                } else {
+                    els.noReviewsMsg.style.display = 'none';
+                    // Display reviews from newest to oldest
+                    [...appData.reviews].reverse().forEach(review => {
+                        const reviewItem = document.createElement('li');
+                        reviewItem.classList.add('review-item');
+                        reviewItem.dataset.reviewId = review.id; // Store review ID
+
+                        const likeIconClass = review.liked ? 'fas fa-heart' : 'far fa-heart';
+                        reviewItem.innerHTML = `
+                            <div class="review-header">
+                                <span class="reviewer-name">${review.name}</span>
+                                <span class="review-date">${review.date}</span>
+                            </div>
+                            <p class="review-text">${review.text}</p>
+                            <div class="review-actions">
+                                <span class="like-button ${review.liked ? 'liked' : ''}" data-review-id="${review.id}">
+                                    <i class="${likeIconClass}"></i>
+                                </span>
+                                <span class="like-count">${review.likes}</span> likes
+                            </div>
+                        `;
+                        els.reviewList.appendChild(reviewItem);
+
+                        // Add event listener for the like button
+                        const likeButton = reviewItem.querySelector('.like-button');
+                        if (likeButton) {
+                            likeButton.addEventListener('click', () => toggleLike(review.id));
+                        }
+                    });
+                }
+            };
+
+            const toggleLike = (reviewId) => {
+                const reviewIndex = appData.reviews.findIndex(r => r.id === reviewId);
+                if (reviewIndex > -1) {
+                    const review = appData.reviews[reviewIndex];
+                    if (review.liked) {
+                        review.likes--;
+                        review.liked = false;
+                    } else {
+                        review.likes++;
+                        review.liked = true;
+                    }
+                    saveAppData();
+                    displayReviews(); // Re-render to show updated likes and icon
+                }
+            };
+
+            const addAutoLike = (reviewId) => {
+                const reviewIndex = appData.reviews.findIndex(r => r.id === reviewId);
+                if (reviewIndex > -1) {
+                    const review = appData.reviews[reviewIndex];
+                    
+                    // Only add like if it hasn't reached max auto-likes and autoLikeTime is set
+                    if (review.autoLikeCount < review.maxAutoLikes) {
+                        review.likes++;
+                        review.autoLikeCount++;
+                        saveAppData();
+                        console.log(`Auto-liked review ID ${reviewId}. Total auto-likes: ${review.autoLikeCount}`);
+                        // Only re-display if the reviews page is currently active
+                        if (document.getElementById('reviews-page').classList.contains('active')) {
+                            displayReviews();
+                        }
+                        // Schedule the next auto-like
+                        if (review.autoLikeCount < review.maxAutoLikes) {
+                            setTimeout(() => addAutoLike(reviewId), 60 * 60 * 1000); // 1 hour later
+                        }
+                    }
+                }
+            };
+
+            const scheduleAutoLikes = (reviewId) => {
+                const reviewIndex = appData.reviews.findIndex(r => r.id === reviewId);
+                if (reviewIndex > -1) {
+                    const review = appData.reviews[reviewIndex];
+                    if (!review.autoLikeScheduled) { // Only schedule if not already scheduled
+                        review.autoLikeCount = 0; // Initialize auto-like count
+                        review.maxAutoLikes = Math.floor(Math.random() * (14 - 7 + 1)) + 7; // 7 to 14 times
+                        review.autoLikeScheduled = true; // Mark as scheduled
+                        saveAppData(); // Save the new autoLikeScheduled and maxAutoLikes
+                        
+                        console.log(`Scheduling auto-likes for review ID ${reviewId}. Will auto-like ${review.maxAutoLikes} times.`);
+                        setTimeout(() => addAutoLike(reviewId), 60 * 60 * 1000); // First auto-like after 1 hour
+                    }
+                }
+            };
+            
+            const processPendingAutoLikes = () => {
+                appData.reviews.forEach(review => {
+                    // Check if a review needs auto-likes and hasn't completed them
+                    if (review.autoLikeScheduled && review.autoLikeCount < review.maxAutoLikes) {
+                        // Re-schedule the next auto-like for existing reviews
+                        // We assume that if autoLikeScheduled is true and count is less than max,
+                        // we need to continue the process from where it left off.
+                        // For simplicity, we'll just schedule the next like immediately on load,
+                        // and then subsequent ones will follow the 1-hour interval.
+                        // A more robust solution would track the last auto-like time and calculate remaining time.
+                        console.log(`Resuming auto-likes for review ID ${review.id}. Remaining: ${review.maxAutoLikes - review.autoLikeCount}`);
+                        setTimeout(() => addAutoLike(review.id), 1000); // Trigger next auto-like shortly after load
+                    }
+                });
+            };
+
+
+            const handleSubmitReview = () => {
+                const name = appData.userNameVal; // Get name from profile
+                const reviewText = els.reviewTextInput.value.trim();
+
+                if (reviewText.length < 10 || reviewText.length > 100) {
+                    els.reviewSubmissionMessage.style.color = 'var(--danger-red)';
+                    els.reviewSubmissionMessage.textContent = 'Please write a review between 10 and 100 characters.';
+                    return;
+                }
+
+                const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+                const newReviewId = ++appData.lastReviewId; // Increment for unique ID
+                const newReview = {
+                    id: newReviewId,
+                    name: name,
+                    date: today,
+                    text: reviewText,
+                    likes: 0, 
+                    liked: false,
+                    autoLikeScheduled: false, // Flag to indicate if auto-likes have been scheduled
+                    autoLikeCount: 0, // Current count of auto-likes added
+                    maxAutoLikes: 0 // Max auto-likes for this review
+                };
+
+                appData.reviews.push(newReview);
+                saveAppData();
+                displayReviews(); // Update the displayed list
+                scheduleAutoLikes(newReview.id); // Schedule auto likes for the new review
+                
+                els.reviewTextInput.value = ''; // Clear textarea
+                els.reviewSubmissionMessage.style.color = 'var(--success-green)';
+                els.reviewSubmissionMessage.textContent = 'Your review has been submitted! Thank you!';
+
+                setTimeout(() => {
+                    els.reviewSubmissionMessage.textContent = ''; // Clear message after a few seconds
+                }, 3000);
+            };
+
+
             const showPage = (pageId) => {
                 els.pages.forEach(page => {
                     page.classList.remove('active');
                 });
                 document.getElementById(pageId).classList.add('active');
                 els.mainC.classList.add('hidden'); // Hide the main scrollable view
+
+                // Specific actions for new pages when shown
+                if (pageId === 'reviews-page') {
+                    displayReviews(); // Ensure reviews are updated when the page is opened
+                }
             };
 
             const goBack = () => {
@@ -1240,12 +1627,14 @@
 
             const init = () => {
                 loadAppData(); // Load data from localStorage first
+                processPendingAutoLikes(); // Check for any pending auto-likes from previous sessions
 
                 els.userUidEl.textContent = appData.userUid;
                 els.userName.textContent = appData.userNameVal;
                 setProfilePic();
                 updateNotificationDisplay();
                 updateRedemptionHistoryDisplay();
+                displayReviews(); // Initialize reviews display on load
 
                 els.editProfilePicBtn.addEventListener('click', () => els.profilePicInput.click());
                 els.profilePicInput.addEventListener('change', handleProfilePicChange);
@@ -1253,6 +1642,7 @@
                 els.copyUidBtn.addEventListener('click', handleCopyUid);
 
                 els.redeemCodeBtn.addEventListener('click', handleRedeemCode);
+                els.submitReviewBtn.addEventListener('click', handleSubmitReview); // New: Review submission
 
                 // Event listener for cards/list items that open pages
                 els.navTriggers.forEach(item => {
